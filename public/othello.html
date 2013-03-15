@@ -1,0 +1,36 @@
+<!doctype html>
+<html>
+
+	<head>
+		<link rel="stylesheet" href="css/othello.css">
+		<script src="js/jquery-1.8.3.min.js"></script>
+		<script src="js/dnj.util.js"></script>
+		<script src="js/othello.js"></script>
+		<script src="js/direction.js"></script>
+		<script src="js/move.js"></script>
+		<script src="js/coordinate.js"></script>
+		<script src="js/board.js"></script>
+	</head>
+
+	<body>
+		<div class="boardContainer">
+			<div class="board" id="board"></div>
+		</div>
+
+		<div class="gameInfoContainer">
+			<h1 class="gameName">Othello</h1>
+			<div class="turn" id="turn"></div>
+			<div class="buttons">
+				<button type="button" class = "btn" id="undoButton">Undo</button>
+				<button type="button" class = "btn" id="redoButton">Redo</button>
+			</div>
+			<div class="outcome" id="outcome"></div>
+		</div>
+
+		<div class="scoreContainer">
+			<h3 id="alienScore" class="score">0</h3>
+			<h3 id="ninjaScore" class="score">0</h3>
+		</div>
+	</body>
+
+</html>

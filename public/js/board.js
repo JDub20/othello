@@ -22,10 +22,15 @@ var Board = function (boardDimension) {
 		'EAST': new HorizontalEast,'WEST': new HorizontalWest,
 		'NORTHEAST': new DiagonalNorthEast,'NORTHWEST': new DiagonalNorthWest,
 		'SOUTHEAST': new DiagonalSouthEast, 'SOUTHWEST': new DiagonalSouthWest};
+
+	// var DIRECTIONS = [new VerticalNorth(), new VerticalSouth,
+	// 	new HorizontalEast, new HorizontalWest,
+	// 	new DiagonalNorthEast, new DiagonalNorthWest,
+	// 	new DiagonalSouthEast, new DiagonalSouthWest];
 	
 	// for debugging
-	PLAYER_1.toString = function() {return "ALIEN";};
-	PLAYER_2.toString = function() {return "NINJA";};
+	PLAYER_1.toString = function() {return "Alien";};
+	PLAYER_2.toString = function() {return "Ninja";};
 	NONE.toString = function() {return "-";};
 
 	var moveStack = [];
@@ -64,7 +69,6 @@ var Board = function (boardDimension) {
 		};
 
 		redoQueue.push(move);
-
 
 		var ends = move.getEnds();
 		var e1 = move.getClickedEnd();
@@ -188,24 +192,23 @@ var Board = function (boardDimension) {
 	};
 
 	this.isGameOver = function() {
-		var noMovesLeft = true;
 
 		console.log("isGAMEOVER");
 		for (var row = 0; row < board.length; row ++) {
-			for (column in board[row]) {
+			for (var col = 0; col < board.length; col ++) {
 				console.log("r: "+row);
-				console.log("c: "+column);
-				var ends = that.verifyMove(row, column);
+				console.log("c: "+col);
+				var ends = that.verifyMove(row, col);
+				console.log("ends");
 				console.log(ends);
-				if (!Object.keys(ends).isEmpty()) noMovesLeft = false;
+				console.log(!Object.keys(ends).isEmpty());
+				if (!Object.keys(ends).isEmpty()) {
+					return false;
+				}
 			}
 		}
 
-		if (noMovesLeft) {
-			//was previously updated. should revert back to last
-			//player since current player can't make a move
-			updateCurrentPlayerId();
-		};
+		return true;
 		
 	};
 

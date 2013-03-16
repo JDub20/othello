@@ -22,10 +22,8 @@ $(document).ready(function () {
 
 	for (var row = 0; row < boardDimension; row++) {
 		elements.push(Array.dim(boardDimension).map(function () {
-			// use jquery so this we have jq objects and not elements
 			var box = $("<div>");
 			box.addClass("box");
-			//box.prepend('<img id="alienImage" src="images/alien-skull.png" />');
 			$("#board").append(box);
 			return box;
 		}));
@@ -40,7 +38,6 @@ $(document).ready(function () {
 
 	var updateScoreLabel = function() {
 		var player = board.getCurrentPlayer();
-
 		var scoreLabelId = player.scoreLabelId;
 		var score = player.score;
 		var playerString = player.toString();
@@ -166,7 +163,7 @@ $(document).ready(function () {
 
 				if (board.isGameOver()) {
 					updateTurnLabel();
-					$("#outcome").html("Winner" + board.getCurrentPlayer().toString);
+					$("#outcome").html("Winner: " + board.getCurrentPlayer().toString());
 				}
 
 

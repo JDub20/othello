@@ -1,3 +1,5 @@
+//clickedEnds: end that was hit
+//ends: end of line that changed
 var Move = function (clickedEnd, ends) {
 	var clickedEnd = clickedEnd;
 	var ends = ends

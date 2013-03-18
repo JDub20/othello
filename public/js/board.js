@@ -6,27 +6,15 @@ var Board = function (boardDimension) {
 	var PLAYER_1 = {}, PLAYER_2 = {}, NONE = {};
 	PLAYER_1.other = PLAYER_2;
 	PLAYER_1.cssClass = "player1";
-	PLAYER_1.imageHTML = '<img src="images/alien-skull.png" />';
-	PLAYER_1.turnHTML = '<img src="images/alien-skull.png" />';
 	PLAYER_1.score = 2;
 	PLAYER_1.scoreLabelId = "alienScore"
 
 	PLAYER_2.other = PLAYER_1;
 	PLAYER_2.cssClass = "player2";
-	PLAYER_2.imageHTML = '<img src="images/ninja-mask.png" />';
-	PLAYER_2.turnHTML = '<img Src="images/ninja-mask.png" />';
 	PLAYER_2.score = 2;
 	PLAYER_2.scoreLabelId = "ninjaScore"
 
-	var DIRECTIONS = {'NORTH': new VerticalNorth(), 'SOUTH': new VerticalSouth,
-		'EAST': new HorizontalEast,'WEST': new HorizontalWest,
-		'NORTHEAST': new DiagonalNorthEast,'NORTHWEST': new DiagonalNorthWest,
-		'SOUTHEAST': new DiagonalSouthEast, 'SOUTHWEST': new DiagonalSouthWest};
-
-	// var DIRECTIONS = [new VerticalNorth(), new VerticalSouth,
-	// 	new HorizontalEast, new HorizontalWest,
-	// 	new DiagonalNorthEast, new DiagonalNorthWest,
-	// 	new DiagonalSouthEast, new DiagonalSouthWest];
+  var compass = new Compass();
 	
 	// for debugging
 	PLAYER_1.toString = function() {return "Alien";};
@@ -70,52 +58,66 @@ var Board = function (boardDimension) {
 
 		redoQueue.push(move);
 
-		var ends = move.getEnds();
-		var e1 = move.getClickedEnd();
-		var r1 = e1.getRow();
-		var c1 = e1.getColumn();
-		board[r1][c1] = NONE;
+		var cell = move.getNewDisk();
+		var row = cell.getRow();
+		var col = cell.getColumn();
+
+
+		board[row][col] = NONE;
+
 		that.getCurrentPlayer().other.score -= 1;
 
-		updateLine(e1, ends, true);
+		updateLine(move, true);
 		
 		updateCurrentPlayerId();
 		return move;
 
 	};
 
-	var updateLine = function  (e1, ends, undoing) {
+	var updateLine = function  (move, undoing) {
 		var player = that.getCurrentPlayer();
-		for (dName in ends) {
-	 		if (dName in DIRECTIONS) {
-	 			var r1 = e1.getRow();
-				var c1 = e1.getColumn();
-	 			var direction = DIRECTIONS[dName];
-	 			var e2 = ends[dName];
-	 			if (undoing) {
-					r1 = direction.rStep(r1);
-					c1 = direction.cStep(c1);
-	 			}
-				while (direction.inBetweenEnds(r1,c1,e2)) {
-					updateScore(r1, c1, player);
-					board[r1][c1] = player;
-					r1 = direction.rStep(r1);
-					c1 = direction.cStep(c1);
-				}
-			}
-		}
+    move.getFlips().forEach(function (flip, index, array) {
+      var newDisk = flip.getNewDisk();
+      var r1 = newDisk.getRow();
+      var c1 = newDisk.getColumn();
+      var step = new Coordinate(r1, c1);
+      var direction = flip.getDirection();
+      var anchor = flip.getAnchor();
+
+      if (undoing) {
+        step = direction.step(step);
+      };
+
+      while (direction.inBetween(step,anchor)) {
+        updateScore(step, player);
+        updateCell(step, player);
+        step = direction.step(step);
+      }
+
+
+    });
 
 	};
 
+  var updateCell = function (coordinate, player) {
+    var row = coordinate.getRow();
+    var col = coordinate.getColumn();
+    board[row][col] = player;
+  };
+
 	this.redo = function  () {
 		var move = redoQueue.pop();
-		if (move == undefined) return undefined;
-		that.play(move.getClickedEnd(), move.getEnds(), true);
+		if (move == undefined) return;
+		that.play(move, true);
 		return move;
 	}
 
-	var updateScore = function  (r1, c1, player) {
-		oldName = board[r1][c1];
+	var updateScore = function  (coordinate, player) {
+    var row = coordinate.getRow();
+    var col = coordinate.getColumn();
+
+    //checking occupancy of cells
+		oldName = board[row][col];
 		if (oldName == NONE) player.score +=1;
 		if (player == oldName.other) {
 			oldName.score -= 1;
@@ -126,83 +128,96 @@ var Board = function (boardDimension) {
 
 	// mutate board by playing player in position
 	// if the move is valid
-	this.play = function (e1, ends, reDoing) {
+	this.play = function (move, reDoing) {
 		//you're clicking.  remove
 		if (!reDoing) {
 			redoQueue = [];
 		};
 
 		var player = that.getCurrentPlayer();
-		moveStack.push(new Move(e1,ends));
+
+		moveStack.push(move);
  
 
-		updateLine(e1, ends, false);
+		updateLine(move, false);
 
 		updateCurrentPlayerId();
 		
 	};
 
 	//return list of compatible ends
-	this.verifyMove = function (row, column) {
-		var ends = {};
-		if (board[row][column] != NONE) return ends;
+	this.verifyMove = function (coordinate) {
+    var row = coordinate.getRow();
+    var col = coordinate.getColumn();
+    var flips = [];
+		if (playerAt(coordinate) != NONE) return new Move(flips);
+    
+    compass.getDirections().forEach ( function (direction, index, array) {
+      var anchor = getAnchor(coordinate, direction);
+      if (anchor != undefined) {
+        flips.push(new Flip(coordinate, direction, anchor));
+      }
+    });
 
-		for (d in DIRECTIONS) {
-			var e = getEnd(row, column, DIRECTIONS[d]);
-			if (e != undefined) {
-				ends[d] = e;
-			}
-		}
-
-		return ends;
+		return new Move(flips);
 	};
 
-	var getEnd = function(row, column, direction) {
-		var end;
+  // if a flip in direction is possible,
+  // return the anchor opposite the (row, col)
+  // in direction
+	var getAnchor = function(coordinate, direction) {
+		var anchor;
+    var row = coordinate.getRow();
+    var col = coordinate.getColumn();
 		//move two over
-		var r = direction.rStepTwice(row);
-		var c = direction.cStepTwice(column);
+    var step = new Coordinate(row,col);
+    step = direction.stepTwice(step);
 		var player = that.getCurrentPlayer();
 
-		while (direction.onBoard(boardDimension, r,c)) {
-			if (board[r][c] == player) {
-				end = new Coordinate(r,c);
+    //look for potential anchor
+    //if find disk of same kind at least two steps
+    //ahead, then you've found potential anchor
+		while (direction.onBoard(boardDimension, step)) {
+			if (playerAt(step) == player) {
+				anchor = new Coordinate(step.getRow(),step.getColumn());
 				break;
 			}
-			r = direction.rStep(r);
-			c = direction.cStep(c);
+      step = direction.step(step);
 		}
 
-		if (end == undefined) return end;
+    //no anchor found
+		if (anchor == undefined) return anchor;
 
-		r = direction.rStep(row);
-		c = direction.cStep(column);
 
-		while (direction.inBetweenEnds(r, c, end)) {
-			if (board[r][c] != player.other) {
-				end = undefined;
+		step = new Coordinate(row,col);
+    step = direction.step(step);
+
+    //if everything between (row,col) and anchor
+    //are of opposite kind, then the anchor is
+    //good
+		while (direction.inBetween(step, anchor)) {
+			if (playerAt(step) != player.other) {
+
+				anchor = undefined;
 				break;
 			}
-			r = direction.rStep(r);
-			c = direction.cStep(c);
+			step = direction.step(step);
 		}
 
-		return end;
+		return anchor;
 
 	};
 
+  var playerAt = function (coordinate) {
+    return board[coordinate.getRow()][coordinate.getColumn()];
+  }
 	this.isGameOver = function() {
 
-		console.log("isGAMEOVER");
 		for (var row = 0; row < board.length; row ++) {
 			for (var col = 0; col < board.length; col ++) {
-				console.log("r: "+row);
-				console.log("c: "+col);
-				var ends = that.verifyMove(row, col);
-				console.log("ends");
-				console.log(ends);
-				console.log(!Object.keys(ends).isEmpty());
-				if (!Object.keys(ends).isEmpty()) {
+				var move = that.verifyMove(new Coordinate(row, col));
+        //if there are moves, then game not over
+				if (!move.noMoves()) {
 					return false;
 				}
 			}

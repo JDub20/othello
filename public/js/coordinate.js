@@ -6,15 +6,8 @@ var Coordinate = function (row, column) {
 		return row;
 	}
 
-	var setRow = function(row) {
-		this.row = row;
-	}
-
 	this.getColumn = function() {
 		return column;
 	}
 
-	var setColumn = function(column) {
-		this.column = column;
-	}
 }

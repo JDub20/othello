@@ -13,24 +13,31 @@
 	</head>
 
 	<body>
-		<div class="boardContainer">
-			<div class="board" id="board"></div>
-		</div>
+    <div id="content">
+      <div id="gameInfoContainer">
+        <h1 id="gameName">Othello</h1>
+        <div id="turn"></div>
 
-		<div class="gameInfoContainer">
-			<h1 class="gameName">Othello</h1>
-			<div class="turn" id="turn"></div>
-			<div class="buttons">
-				<button type="button" class = "btn" id="undoButton">Undo</button>
-				<button type="button" class = "btn" id="redoButton">Redo</button>
-			</div>
-			<div class="outcome" id="outcome"></div>
-		</div>
+        <div id="scoreContainer">
+          <p>
+            <span id="alienScore" class="score">0</span>
+            <span id="ninjaScore" class="score">0</span>
+          </p>
+        </div>
 
-		<div class="scoreContainer">
-			<h3 id="alienScore" class="score">0</h3>
-			<h3 id="ninjaScore" class="score">0</h3>
-		</div>
+        <div id="buttonContainer">
+          <button type="button" class = "btn" id="undoButton">Undo</button>
+          <button type="button" class = "btn" id="redoButton">Redo</button>
+        </div>
+
+        <div id="outcome"></div>
+      </div>
+
+      <div id="boardContainer">
+        <div id="board"></div>
+      </div>
+    </div>
+
 	</body>
 
 </html>

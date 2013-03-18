@@ -1,10 +1,22 @@
 body {
 	background-color: black;
-	position: relative;
 }
 
-.board {
-	margin: 30px;
+#content {
+  position: relative;
+}
+
+#gameInfoContainer {
+  position: absolute;
+}
+
+#boardContainer {
+  position: absolute;
+  left: 150px;
+}
+
+#board {
+	margin: 10px;
 	width:430px;
 }
 
@@ -32,7 +44,7 @@ body {
 	background-color: black;	
 }
 
-.outcome {
+#outcome {
 	font-size: 40px;
     font-family: Courier New,Courier,monospaced;
     font-weight: bold;
@@ -40,42 +52,34 @@ body {
 	color: red;	
 }
 
-.gameInfoContainer {
-	position:absolute;
- 	top:0px;
- 	left:500px;
- 	width: 300px;
-
-}
-
-.gameName {
+#gameName {
 	color: white;
-	width: 50%;
 	margin-left:auto;
 	margin-right:auto;
 	text-align: center;
 }
 
-.turn {
- 	top:100px;
-	width:75%;
+#turn {
+ 	top:130px;
+	width:130px;
 	margin-left:auto;
 	margin-right:auto;
 
 
 }
 
-.turn img {
+#turn img {
 	width:100%;
 
 }
 
-.buttons {
-	width: 130px;
-	margin-left:auto;
-	margin-right:auto;
- 	top:350px;
+#scoreContainer {
+  color: white;
+}
 
+#scoreContainer p {
+  width: 100%;
+  text-align: center;
 }
 
 .btn {
@@ -113,11 +117,4 @@ body {
   -webkit-box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 1px 2px rgba(0, 0, 0, 0.05);
      -moz-box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 1px 2px rgba(0, 0, 0, 0.05);
           box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 1px 2px rgba(0, 0, 0, 0.05);
-}
-
-.scoreContainer {
-	position:absolute;
- 	top:150px;
- 	left:480px;
-	color: white;
 }

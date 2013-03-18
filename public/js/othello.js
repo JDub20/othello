@@ -7,14 +7,10 @@
 // Initialization after the page is loaded
 //
 $(document).ready(function () {
-	var boardDimension = 8;
-	var outcome = { "draw":"It's a draw!", "win":"I win!", "lose":"You beat me"};
-	var DIRECTIONS = {'NORTH': new VerticalNorth(), 'SOUTH': new VerticalSouth(),
-		'EAST': new HorizontalEast(),'WEST': new HorizontalWest(),
-		'NORTHEAST': new DiagonalNorthEast(),'NORTHWEST': new DiagonalNorthWest(),
-		'SOUTHEAST': new DiagonalSouthEast(), 'SOUTHWEST': new DiagonalSouthWest()};
-	// create elements
-
+	
+  var boardDimension = 8;
+	
+  // create elements
 	var elements = [];
 
 	// create a new board
@@ -30,10 +26,12 @@ $(document).ready(function () {
 	};
 
 
-	var updateTurnLabel = function() {
-		var player = board.getCurrentPlayer();
+	var updateTurnLabel = function(player) {
 		$("#turn").html("");
-		$("#turn").prepend(player.turnHTML);
+    var imageSrc = 'images/' + player.toString() + '.png';
+    var image = $('<img>').attr('src', imageSrc);
+
+		$("#turn").prepend(image);
 	};
 
 	var updateScoreLabel = function() {
@@ -48,39 +46,42 @@ $(document).ready(function () {
 		$("#" + scoreLabelId).html(playerString + " " + score);
 	};
 
+  var renderPiece = function(player, row, col) {
+    elements[row][col].html("");
+    var imageSrc = 'images/' + player.toString() + '.png';
+    var image = $('<img>').attr('src', imageSrc);
+    elements[row][col].prepend(image);
+  };
 
-	elements[3][3].prepend(board.getPlayer(0).imageHTML);
-	elements[3][4].prepend(board.getPlayer(1).imageHTML);
-	elements[4][3].prepend(board.getPlayer(1).imageHTML);
-	elements[4][4].prepend(board.getPlayer(0).imageHTML);
-	updateTurnLabel();
+  renderPiece(board.getPlayer(0), 3, 3);
+  renderPiece(board.getPlayer(1), 3, 4);
+  renderPiece(board.getPlayer(1), 4, 3);
+  renderPiece(board.getPlayer(0), 4, 4);
+
+	updateTurnLabel(board.getCurrentPlayer());
 	updateScoreLabel();
 
 
 	$('#undoButton').click(function() {
 		var move = board.undo();
 		if (move == undefined) return;
-		var ends = move.getEnds();
-		var e1 = move.getClickedEnd();
 		var player = board.getCurrentPlayer().other;
-		renderLines(player, e1, ends, true);
+		renderLines(player, move, true);
 		updateScoreLabel();
 
 	});
 
 	$('#redoButton').click(function() {
 		var move = board.redo();
-		if (move == undefined) return;
-		var ends = move.getEnds();
-		var e1 = move.getClickedEnd();
+		if (move == undefined || move.noMoves()) return;
 		var player = board.getCurrentPlayer().other;
-		renderLines(player, e1, ends, false);
+		renderLines(player, move, false);
 		updateScoreLabel();
 	});
 
 	// attach renderGuess methods to elements
 	elements.forEach(function(cells, row) {
-		cells.forEach(function(cell, column) {
+		cells.forEach(function(cell, col) {
 			cell.renderGuess = function (switchOn) {
 				if (switchOn) {
 					cell.addClass("guess");
@@ -93,12 +94,11 @@ $(document).ready(function () {
 
 	// attach render methods to elements
 	elements.forEach(function(cells, row) {
-		cells.forEach(function(cell, column) {
+		cells.forEach(function(cell, col) {
 			cell.render = function (player, deRendering) {
 				if (!deRendering) {
 					cell.renderGuess(false);
-					cell.html("");
-					cell.prepend(player.imageHTML);
+					renderPiece(player, row, col);
 				} else {
 					cell.html("");
 				}
@@ -109,11 +109,11 @@ $(document).ready(function () {
 
 	//attach hover method
 	elements.forEach(function(cells, row) {
-		cells.forEach(function(cell, column) {
+		cells.forEach(function(cell, col) {
 			 cell.hover(
 			 	function() {
-			 		var ends = board.verifyMove(row, column);
-	 				if (!Object.keys(ends).isEmpty()) {
+			 		var move = board.verifyMove(new Coordinate(row, col));
+	 				if (!move.noMoves()) {
 	 					cell.renderGuess(true);
 	 				}
 			 	},
@@ -124,52 +124,69 @@ $(document).ready(function () {
 	});
 
 	//colors a line, updates score and turnlabel
-	var renderLines = function(player, e1, ends, undoing) {
-		for (dName in ends) {
-			if (dName in DIRECTIONS) {
-				var direction = DIRECTIONS[dName];
-				var r1 = e1.getRow();
-				var c1 = e1.getColumn();
-				var e2 = ends[dName];
-				if (undoing) {
-					elements[r1][c1].render(player, true);
-					r1 = direction.rStep(r1);
-					c1 = direction.cStep(c1);
-				}
+	var renderLines = function(player, move, undoing) {
+    move.getFlips().forEach(function (flip, index, array) {
+      var step = flip.getNewDisk();
+      var r1 = step.getRow();
+      var c1 = step.getColumn();
+      var direction = flip.getDirection();
+      var anchor = flip.getAnchor();
 
-				while (direction.inBetweenEnds(r1,c1,e2)) {
-					elements[r1][c1].render(player, false);
-					r1 = direction.rStep(r1);
-					c1 = direction.cStep(c1);
-				}
-			}
-		}
-		updateTurnLabel();
+      if (undoing) {
+        getElementAt(step).render(player, true);
+        step = direction.step(step);
+      }
+
+      while (direction.inBetween(step,anchor)) {
+        getElementAt(step).render(player, false);
+        step = direction.step(step);
+      }
+
+    });
+
+		updateTurnLabel(player);
 		
 	};
 
+  var getElementAt = function (coordinate) {
+    return elements[coordinate.getRow()][coordinate.getColumn()];
+  };
+
 
 	elements.forEach(function(cells, row, elements) {
-		cells.forEach(function(cell, column) {
+		cells.forEach(function(cell, col) {
 			 cell.click(function() {
-		 		var ends = board.verifyMove(row, column);
-		 		if (Object.keys(ends).isEmpty()) return;
-		 		var e = new Coordinate(row,column);
+        coordinate = new Coordinate(row,col);
+		 		var move = board.verifyMove(new Coordinate(row,col));
+        if (move.noMoves()) return;
 		 		var player = board.getCurrentPlayer();
-		 		renderLines(player, e ,ends, false);
-				board.play(e, ends, false);
+		 		renderLines(player, move, false);
+				board.play(move, false);
 				updateScoreLabel();
-				updateTurnLabel();
+				updateTurnLabel(board.getCurrentPlayer());
 
-				if (board.isGameOver()) {
-					updateTurnLabel();
-					$("#outcome").html("Winner: " + board.getCurrentPlayer().toString());
-				}
-
+				if (board.isGameOver()) gameOver();
 
 		 	});
 		});
 	});
 
+  var gameOver = function () {
+      var player  = board.getCurrentPlayer();
+      var other = player.other;
+      var winner;
+      if (player.score > other.score) {
+        winner = player;
+        $("#outcome").html("Winner: " + winner.toString());
+        updateTurnLabel(winner);
+      } else if (player.score < other.score) {
+        winner = other;
+        $("#outcome").html("Winner: " + winner.toString());
+        updateTurnLabel(winner);
+      } else {
+        $("#turn").html("");
+        $("#outcome").html("Tie");
+      }
+  }
 
 });

@@ -1,11 +1,47 @@
+var Compass = function () {
+	var directionNames = ['NORTH', 'SOUTH',	'EAST', 'WEST',
+		'NORTHEAST','NORTHWEST', 'SOUTHEAST', 'SOUTHWEST'];
+
+	var directions = [ new VerticalNorth(), new VerticalSouth(),
+				new HorizontalEast(), new HorizontalWest(),
+				new DiagonalNorthEast(), new DiagonalNorthWest(),
+				new DiagonalSouthEast(), new DiagonalSouthWest()];
+
+	this.getDirections = function () {
+		return directions;  
+	};
+
+	this.getDirectionNames = function () {
+		return directionNames;
+	}
+
+	this.getDirectionByName = function (directionName) {
+		var i = directionNames.indexOf(directionName);
+		return directions[i];
+	}
+
+  directions.forEach(function (direction, index, array) {
+    direction.__proto__.step = function (coordinate) {
+      var newR = direction.rStep(coordinate.getRow());
+      var newC = direction.cStep(coordinate.getColumn());
+      return new Coordinate(newR,newC);
+    };
+
+    direction.__proto__.stepTwice = function (coordinate) {
+      var newR = direction.rStepTwice(coordinate.getRow());
+      var newC = direction.cStepTwice(coordinate.getColumn());
+      return new Coordinate(newR,newC);
+    }
+  });
+
+};
+
 var VerticalSouth = function() {
 	
 	this.other = function () {
 		return new VerticalNorth();
 	};
 
-	this.toString = "SOUTH";
-	
 	this.rStep = function(r) {
 		return r + 1;
 	};
@@ -23,19 +59,18 @@ var VerticalSouth = function() {
 		return this.cStep(this.cStep(c));
 	};
 
-	this.onBoard = function(boardDimension, r, c) {
-		return r < boardDimension;	
+	this.onBoard = function(boardDimension, coordinate) {
+		return coordinate.getRow() < boardDimension;	
 	};
 
-	this.inBetweenEnds = function(r, c, end) {
-		return r < end.getRow();
+	this.inBetween = function(coordinate, anchor) {
+		return coordinate.getRow() < anchor.getRow();
 	};
 
 };
 
 var HorizontalEast = function() {
-	this.toString = "EAST";
-	
+
 	this.other = function() {
 		return new HorizontalWest();
 	};
@@ -56,23 +91,32 @@ var HorizontalEast = function() {
 		return this.cStep(this.cStep(c));
 	};
 
-	this.onBoard = function(boardDimension, r, c) {
-		return c < boardDimension;	
+	this.onBoard = function(boardDimension, coordinate) {
+		return coordinate.getColumn() < boardDimension;	
 	};
 
-	this.inBetweenEnds = function(r, c, end) {
-		return c < end.getColumn();
+	this.inBetween = function(coordinate, anchor) {
+		return coordinate.getColumn() < anchor.getColumn();
 	};
 };
 
 var VerticalNorth = function() {
+  this.step = function (coordinate) {
+    var newR = this.rStep(coordinate.getRow());
+    var newC = this.cStep(coordinate.getColumn());
+    return new Coordinate(newR,newC);
+  };
 
+  this.stepTwice = function (coordinate) {
+    var newR = this.rStepTwice(coordinate.getRow());
+    var newC = this.cStepTwice(coordinate.getColumn());
+    return new Coordinate(newR,newC);
+  };
+  
 	this.other = function() { 
 		return new VerticalSouth();
 	};
 
-	this.toString = "NORTH";
-	
 	this.rStep = function(r) {
 		return r - 1;
 	};
@@ -89,22 +133,31 @@ var VerticalNorth = function() {
 		return this.cStep(this.cStep(c));
 	};
 
-	this.onBoard = function(boardDimension, r, c) {
-		return r >= 0;	
+	this.onBoard = function(boardDimension, coordinate) {
+		return coordinate.getRow() >= 0;	
 	};
 
-	this.inBetweenEnds = function(r, c, end) {
-		return r > end.getRow();
+	this.inBetween = function(coordinate, anchor) {
+		return coordinate.getRow() > anchor.getRow();
 	};
 };
 
 var HorizontalWest = function() {
+  this.step = function (coordinate) {
+    var newR = this.rStep(coordinate.getRow());
+    var newC = this.cStep(coordinate.getColumn());
+    return new Coordinate(newR,newC);
+  };
 
+  this.stepTwice = function (coordinate) {
+    var newR = this.rStepTwice(coordinate.getRow());
+    var newC = this.cStepTwice(coordinate.getColumn());
+    return new Coordinate(newR,newC);
+  };
+  
 	this.other = function() {
 		return new HorizontalEast();
 	};
-
-	this.toString = "WEST";
 
 	this.rStep = function(r) {
 		return r;
@@ -122,23 +175,32 @@ var HorizontalWest = function() {
 		return this.cStep(this.cStep(c));
 	};
 
-	this.onBoard = function(boardDimension, r, c) {
-		return c >= 0;
+	this.onBoard = function(boardDimension, coordinate) {
+		return coordinate.getColumn() >= 0;
 	};
 
-	this.inBetweenEnds = function(r, c, end) {
-		return c > end.getColumn();
+	this.inBetween = function(coordinate, anchor) {
+		return coordinate.getColumn() > anchor.getColumn();
 	};
 };
 
 var DiagonalNorthEast = function() {
+  this.step = function (coordinate) {
+    var newR = this.rStep(coordinate.getRow());
+    var newC = this.cStep(coordinate.getColumn());
+    return new Coordinate(newR,newC);
+  };
 
+  this.stepTwice = function (coordinate) {
+    var newR = this.rStepTwice(coordinate.getRow());
+    var newC = this.cStepTwice(coordinate.getColumn());
+    return new Coordinate(newR,newC);
+  };
+  
 	this.other = function() {
 		return new DiagonalSouthWest();
 	};
 
-	this.toString = "NORTHEAST";
-
 	this.rStep = function(r) {
 		return r - 1;
 	};
@@ -155,22 +217,33 @@ var DiagonalNorthEast = function() {
 		return this.cStep(this.cStep(c));
 	};
 
-	this.onBoard = function(boardDimension, r, c) {
-		return r >= 0 && c < boardDimension;
+	this.onBoard = function(boardDimension, coordinate) {
+		return coordinate.getRow() >= 0 &&
+           coordinate.getColumn() < boardDimension;
 	};
 
-	this.inBetweenEnds = function(r, c, end) {
-		return r > end.getRow() && c < end.getColumn();
+	this.inBetween = function(coordinate, anchor) {
+		return coordinate.getRow() > anchor.getRow() && 
+           coordinate.getColumn() < anchor.getColumn();
 	};
 };
 
 var DiagonalNorthWest = function() {
+  this.step = function (coordinate) {
+    var newR = this.rStep(coordinate.getRow());
+    var newC = this.cStep(coordinate.getColumn());
+    return new Coordinate(newR,newC);
+  };
 
+  this.stepTwice = function (coordinate) {
+    var newR = this.rStepTwice(coordinate.getRow());
+    var newC = this.cStepTwice(coordinate.getColumn());
+    return new Coordinate(newR,newC);
+  };
+  
 	this.other = function() {
 		return new DiagonalSouthEast();
 	};
-
-	this.toString = "NORTHWESTT";
 
 	this.rStep = function(r) {
 		return r - 1;
@@ -188,22 +261,33 @@ var DiagonalNorthWest = function() {
 		return this.cStep(this.cStep(c));
 	};
 
-	this.onBoard = function(boardDimension, r, c) {
-		return r >= 0 && c >= 0;
+	this.onBoard = function(boardDimension, coordinate) {
+		return coordinate.getRow() >= 0 && 
+           coordinate.getColumn() >= 0;
 	};
 
-	this.inBetweenEnds = function(r, c, end) {
-		return r > end.getRow() && c > end.getColumn();
+	this.inBetween = function(coordinate, anchor) {
+		return coordinate.getRow() > anchor.getRow() && 
+           coordinate.getColumn() > anchor.getColumn();
 	};
 };
 
 var DiagonalSouthEast = function() {
+  this.step = function (coordinate) {
+    var newR = this.rStep(coordinate.getRow());
+    var newC = this.cStep(coordinate.getColumn());
+    return new Coordinate(newR,newC);
+  };
 
+  this.stepTwice = function (coordinate) {
+    var newR = this.rStepTwice(coordinate.getRow());
+    var newC = this.cStepTwice(coordinate.getColumn());
+    return new Coordinate(newR,newC);
+  };
+  
 	this.other = function() {
 		return new DiagonalNorthWest();
 	};
-
-	this.toString = "SOUTHEAST";
 
 	this.rStep = function(r) {
 		return r + 1;
@@ -221,23 +305,34 @@ var DiagonalSouthEast = function() {
 		return this.cStep(this.cStep(c));
 	};
 
-	this.onBoard = function(boardDimension, r, c) {
-		return r < boardDimension && c < boardDimension;
+	this.onBoard = function(boardDimension, coordinate) {
+		return coordinate.getRow() < boardDimension &&
+           coordinate.getColumn() < boardDimension;
 	};
 
-	this.inBetweenEnds = function(r, c, end) {
-		return r < end.getRow() && c < end.getColumn();
+	this.inBetween = function(coordinate, anchor) {
+		return coordinate.getRow() < anchor.getRow() &&
+           coordinate.getColumn() < anchor.getColumn();
 	};
 };
 
 var DiagonalSouthWest = function() {
+  this.step = function (coordinate) {
+    var newR = this.rStep(coordinate.getRow());
+    var newC = this.cStep(coordinate.getColumn());
+    return new Coordinate(newR,newC);
+  };
 
+  this.stepTwice = function (coordinate) {
+    var newR = this.rStepTwice(coordinate.getRow());
+    var newC = this.cStepTwice(coordinate.getColumn());
+    return new Coordinate(newR,newC);
+  };
+  
 	this.other = function() {
 		return new DiagonalNorthEast();
 	};
 	
-	this.toString = "SOUTHWEST";
-
 	this.rStep = function(r) {
 		return r + 1;
 	};
@@ -254,11 +349,13 @@ var DiagonalSouthWest = function() {
 		return this.cStep(this.cStep(c));
 	};
 
-	this.onBoard = function(boardDimension, r, c) {
-		return r < boardDimension && c >= 0;
+	this.onBoard = function(boardDimension, coordinate) {
+		return coordinate.getRow() < boardDimension &&
+           coordinate.getColumn() >= 0;
 	};
 
-	this.inBetweenEnds = function(r, c, end) {
-		return r < end.getRow() && c > end.getColumn();
+	this.inBetween = function(coordinate, anchor) {
+		return coordinate.getRow() < anchor.getRow() && 
+           coordinate.getColumn() > anchor.getColumn();
 	};
 };

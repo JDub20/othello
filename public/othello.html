@@ -14,8 +14,12 @@
 
 	<body>
     <div id="content">
+      <h1 id="gameName">Othello</h1>
       <div id="gameInfoContainer">
-        <h1 id="gameName">Othello</h1>
+        <form id="gameMode">
+          <input type="radio" name="sex" value="male" checked>Human versus Human<br>
+          <input type="radio" name="sex" value="female">Human versus Computer
+        </form>
         <div id="turn"></div>
 
         <div id="scoreContainer">
@@ -37,7 +41,10 @@
         <div id="board"></div>
       </div>
     </div>
+    <div>
+      select game
 
+    </div>
 	</body>
 
 </html>

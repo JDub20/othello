@@ -8,11 +8,19 @@ body {
 
 #gameInfoContainer {
   position: absolute;
+  float: center;
+  top: 80px;
 }
 
 #boardContainer {
   position: absolute;
   left: 150px;
+}
+
+#gameMode {
+  color: white;
+  position: absolute;
+  top: 245px;
 }
 
 #board {
@@ -53,10 +61,10 @@ body {
 }
 
 #gameName {
+  position: absolute;
 	color: white;
-	margin-left:auto;
-	margin-right:auto;
 	text-align: center;
+  left: 20px;
 }
 
 #turn {

@@ -8,6 +8,10 @@
 //
 $(document).ready(function () {
 	
+  // $("#boardContainer").css("display", "none");
+  // $("#gameInfoContainer").css("display", "none");
+
+
   var boardDimension = 8;
 	
   // create elements
@@ -172,6 +176,8 @@ $(document).ready(function () {
 	});
 
   var gameOver = function () {
+      $("undoButton").prop("disabled", true);
+      $("redoButton").prop("disabled", true);
       var player  = board.getCurrentPlayer();
       var other = player.other;
       var winner;

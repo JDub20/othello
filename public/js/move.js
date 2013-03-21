@@ -1,22 +1,44 @@
 //flips list of flip
 //size of flip
-var Move = function (flips) {
-	var flips = flips;
+//only nonEmpty moves are made
+var Move = function (player, newDisk, flipGenerator) {
+  var that = this;
+  var player = player;
+  var flips = flipGenerator(newDisk);
+  var deltaScore = {};
+  var flippedDisks = [];
+  var newDisk = newDisk;
 
-	this.getFlips = function() {
-		return flips;
-	};
+  flips = flipGenerator(newDisk);
 
-  this.noMoves = function () {
-    return flips.length == 0;
+  flips.forEach(function (flip, index, flips) {
+    flip.getFlippedDisks().forEach(function (cell, i, line) {
+      flippedDisks.push(cell)
+    });
+  });
+
+  deltaScore[player] = 1 + flippedDisks.length;
+  deltaScore[player.other] = -flippedDisks.length;
+
+  this.getAllUpdatedCoordinates = function () {
+    return [newDisk].concat(flippedDisks);
   };
 
-  this.getNewDisk = function () {
-    if (flips.length > 0) {
-      return flips[0].getNewDisk();
-    };
-    return ;
+  this.getFlippedDisks = function () {
+    return flippedDisks;
+  };
+
+  this.getDeltaScorePlayer = function (player) {
+    return deltaScore[player];
   }
+
+  this.getNewDisk = function () {
+    return newDisk;
+  };
+
+  this.getPlayer = function () {
+    return player;
+  };
 
 };
 
@@ -25,10 +47,15 @@ var Move = function (flips) {
 //direction of the flip, and the anchor, which 
 //is the end opposite where the new piece was placed
 
-var Flip = function (newDisk, direction, anchor) {
+var Flip = function (direction, newDisk, flippedDisks, anchor) {
+  //where a new disk has been placed
   var newDisk = newDisk;
+  //direction from: newDisk to: anchor
   var direction = direction;
+  //the anchor piece that belongs to the same player
   var anchor = anchor;
+  //the pieced flipped in between newDisk and Anchor
+  var flippedDisks = flippedDisks;
 
   this.getNewDisk = function () {
     return newDisk;
@@ -40,6 +67,10 @@ var Flip = function (newDisk, direction, anchor) {
 
   this.getAnchor = function () {
     return anchor;
+  };
+
+  this.getFlippedDisks =function() {
+    return flippedDisks;
   };
 
 }

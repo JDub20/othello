@@ -53,11 +53,12 @@ body {
 }
 
 #outcome {
+  position: relative;
 	font-size: 40px;
     font-family: Courier New,Courier,monospaced;
     font-weight: bold;
-	vertical-align: bottom;
-	color: red;	
+	color: red;
+  top: 450px;
 }
 
 #gameName {

@@ -31,8 +31,9 @@ var Compass = function () {
       var newR = direction.rStepTwice(coordinate.getRow());
       var newC = direction.cStepTwice(coordinate.getColumn());
       return new Coordinate(newR,newC);
-    }
+    };
   });
+
 
 };
 

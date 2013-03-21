@@ -29,6 +29,9 @@ $(document).ready(function () {
 		}));
 	};
 
+  var getGameMode = function() {
+    return $('input[name=mode]:checked', '#gameMode').val();
+  }
 
 	var updateTurnLabel = function(player) {
 		$("#turn").html("");
@@ -69,18 +72,18 @@ $(document).ready(function () {
 	$('#undoButton').click(function() {
 		var move = board.undo();
 		if (move == undefined) return;
-		var player = board.getCurrentPlayer().other;
-		renderLines(player, move, true);
+		var newDisk = move.getNewDisk();
+		getElementAt(newDisk).deRender();
+		renderLine(move.getFlippedDisks(), move.getPlayer().other);
 		updateScoreLabel();
 
 	});
 
 	$('#redoButton').click(function() {
 		var move = board.redo();
-		if (move == undefined || move.noMoves()) return;
-		var player = board.getCurrentPlayer().other;
-		renderLines(player, move, false);
-		updateScoreLabel();
+		if (move == undefined) return;
+		renderLine(move.getAllUpdatedCoordinates(), move.getPlayer());
+		updateScoreLabel();   
 	});
 
 	// attach renderGuess methods to elements
@@ -99,25 +102,28 @@ $(document).ready(function () {
 	// attach render methods to elements
 	elements.forEach(function(cells, row) {
 		cells.forEach(function(cell, col) {
-			cell.render = function (player, deRendering) {
-				if (!deRendering) {
-					cell.renderGuess(false);
-					renderPiece(player, row, col);
-				} else {
-					cell.html("");
-				}
-
+			cell.render = function (player) {
+        cell.renderGuess(false);
+        renderPiece(player, row, col);
 			};	
 		});
 	});
+
+  // attach deRender methods to elements
+  elements.forEach(function(cells, row) {
+    cells.forEach(function(cell, col) {
+      cell.deRender = function () {
+        cell.html("");
+      };  
+    });
+  });
 
 	//attach hover method
 	elements.forEach(function(cells, row) {
 		cells.forEach(function(cell, col) {
 			 cell.hover(
 			 	function() {
-			 		var move = board.verifyMove(new Coordinate(row, col));
-	 				if (!move.noMoves()) {
+	 				if (board.verifyMove(new Coordinate(row, col))) {
 	 					cell.renderGuess(true);
 	 				}
 			 	},
@@ -127,72 +133,52 @@ $(document).ready(function () {
 		});
 	});
 
-	//colors a line, updates score and turnlabel
-	var renderLines = function(player, move, undoing) {
-    move.getFlips().forEach(function (flip, index, array) {
-      var step = flip.getNewDisk();
-      var r1 = step.getRow();
-      var c1 = step.getColumn();
-      var direction = flip.getDirection();
-      var anchor = flip.getAnchor();
-
-      if (undoing) {
-        getElementAt(step).render(player, true);
-        step = direction.step(step);
-      }
-
-      while (direction.inBetween(step,anchor)) {
-        getElementAt(step).render(player, false);
-        step = direction.step(step);
-      }
-
-    });
-
-		updateTurnLabel(player);
-		
-	};
 
   var getElementAt = function (coordinate) {
     return elements[coordinate.getRow()][coordinate.getColumn()];
   };
 
 
-	elements.forEach(function(cells, row, elements) {
-		cells.forEach(function(cell, col) {
-			 cell.click(function() {
-        coordinate = new Coordinate(row,col);
-		 		var move = board.verifyMove(new Coordinate(row,col));
-        if (move.noMoves()) return;
-		 		var player = board.getCurrentPlayer();
-		 		renderLines(player, move, false);
-				board.play(move, false);
-				updateScoreLabel();
-				updateTurnLabel(board.getCurrentPlayer());
+  elements.forEach(function(cells, row, elements) {
+    cells.forEach(function(cell, col) {
+      cell.click(function() {
+        var coordinate = new Coordinate(row,col);
+        if (getElementAt(coordinate).hasClass("guess")) {
+          var move = board.play(coordinate);
+          renderLine(move.getAllUpdatedCoordinates(), move.getPlayer());
+          updateTurnLabel(board.getCurrentPlayer());
+          updateScoreLabel();
+          if (board.isGameOver()) {
+            gameOver();
+            return;
+          }
 
-				if (board.isGameOver()) gameOver();
+          if (getGameMode() =="hvc") {
+            move = board.play(board.bestMove());
+            renderLine(move.getAllUpdatedCoordinates(), move.getPlayer());
+            updateTurnLabel(board.getCurrentPlayer());
+            updateScoreLabel();
+            if (board.isGameOver()) gameOver();
+          }
 
-		 	});
-		});
-	});
+        };
+      });
+    });
+  });
+
+  //takes a list of coordinates and what player to render
+  var renderLine = function (coordinates, player) {
+    coordinates.forEach( function (coordinate, index, coordinates) {
+      getElementAt(coordinate).render(player);
+    })
+  };
 
   var gameOver = function () {
       $("undoButton").prop("disabled", true);
       $("redoButton").prop("disabled", true);
-      var player  = board.getCurrentPlayer();
-      var other = player.other;
-      var winner;
-      if (player.score > other.score) {
-        winner = player;
-        $("#outcome").html("Winner: " + winner.toString());
-        updateTurnLabel(winner);
-      } else if (player.score < other.score) {
-        winner = other;
-        $("#outcome").html("Winner: " + winner.toString());
-        updateTurnLabel(winner);
-      } else {
-        $("#turn").html("");
-        $("#outcome").html("Tie");
-      }
+      var winner = board.getWinner();
+      $("#outcome").html("Winner: " + winner.toString());
+      updateTurnLabel(winner);
   }
 
 });

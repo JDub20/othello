@@ -17,8 +17,8 @@
       <h1 id="gameName">Othello</h1>
       <div id="gameInfoContainer">
         <form id="gameMode">
-          <input type="radio" name="sex" value="male" checked>Human versus Human<br>
-          <input type="radio" name="sex" value="female">Human versus Computer
+          <input type="radio" name="mode" value="hvh" checked>Human versus Human<br>
+          <input type="radio" name="mode" value="hvc">Human versus Computer
         </form>
         <div id="turn"></div>
 
@@ -34,12 +34,13 @@
           <button type="button" class = "btn" id="redoButton">Redo</button>
         </div>
 
-        <div id="outcome"></div>
       </div>
 
       <div id="boardContainer">
         <div id="board"></div>
       </div>
+      
+      <div id="outcome"></div>
     </div>
     <div>
       select game
